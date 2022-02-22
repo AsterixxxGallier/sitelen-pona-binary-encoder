@@ -1,9 +1,16 @@
 const sitelenPona: { [nimi: string]: Image } = {
     o: images.createImage(`
         . . . . .
-        . # . . .
-        # . # . .
-        . # . . .
+        . . # . .
+        . # . # .
+        . . # . .
+        . . . . .
+    `),
+    a: images.createImage(`
+        . . . . .
+        . . # . .
+        . # . # .
+        . . # . #
         . . . . .
     `),
     pona: images.createImage(`
@@ -15,35 +22,42 @@ const sitelenPona: { [nimi: string]: Image } = {
     `)
 }
 
-const suliNimi: { [nimi: string]: number } = {
-}
+const openNimi: { [nimi: string]: number } = {}
+const piniNimi: { [nimi: string]: number } = {}
+const suliNimi: { [nimi: string]: number } = {}
 
 Object.keys(sitelenPona).forEach(nimi => {
     const sitelen = sitelenPona[nimi]
-    let suli = 0
+    let open = -1
+    let pini = 0
     for (let x = 0; x < 5; x++) {
         let empty = true
         for (let y = 0; y < 5; y++)
             if (sitelen.pixel(x, y))
                 empty = false
-        if (!empty)
-            suli = x + 1
+        if (!empty) {
+            if (open == -1)
+                open = x
+            pini = x + 1
+        }
     }
-    suliNimi[nimi] = suli
+    openNimi[nimi] = open
+    piniNimi[nimi] = pini
+    suliNimi[nimi] = pini - open
 })
 
 let lipu: string[] = []
 let lonNimi: number[] = []
-let suliLipu: number = 0
+let piniLipu: number = 0
 
 function paliSin(nimi: string) {
     lipu.push(nimi)
-    lonNimi.push(suliLipu)
-    suliLipu += suliNimi[nimi] + 1
+    lonNimi.push(piniLipu)
+    piniLipu += suliNimi[nimi] + 1
 }
 
 input.onButtonPressed(Button.A, function () {
-    paliSin("o")
+    paliSin("a")
 })
 
 input.onButtonPressed(Button.B, function () {
@@ -53,22 +67,18 @@ input.onButtonPressed(Button.B, function () {
 let lon = -4
 basic.forever(function () {
     if (lipu.length) {
-        if (lipu.length > 1) {
-            const sitelenSin = images.createImage("")
-            lipu.forEach((nimi, nanpa) => {
-                const sitelen = sitelenPona[nimi]
-                for (let x = 0; x < 5; x++)
-                    for (let y = 0; y < 5; y++)
-                        if (sitelen.pixel(x - lonNimi[nanpa] + lon, y))
-                            sitelenSin.setPixel(x, y, true)
-            })
-            sitelenSin.showImage(0, 0)
-            lon++
-            if (lon >= suliLipu) {
-                lon = -4
-            }
-        } else {
-            sitelenPona[lipu[0]].showImage(0, 0)
+        const sitelenSin = images.createImage("")
+        lipu.forEach((nimi, nanpa) => {
+            const sitelen = sitelenPona[nimi]
+            for (let x = 0; x < 5; x++)
+                for (let y = 0; y < 5; y++)
+                    if (sitelen.pixel(x - lonNimi[nanpa] + openNimi[nimi] + lon, y))
+                        sitelenSin.setPixel(x, y, true)
+        })
+        sitelenSin.showImage(0, 0)
+        lon++
+        if (lon >= piniLipu) {
+            lon = -4
         }
     }
     pause(100)
